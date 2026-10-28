@@ -120,6 +120,7 @@ export function solveCircuitLocal(
       const negKey = makeKey(vs.id, 'negative');
       if ((terminalConnections[negKey] || 0) > 0) {
         groundNodeId = electricalNodeMap[negKey];
+        errors.push('Notice: Using Voltage Source (-) as reference ground (0V).');
       }
     }
   }

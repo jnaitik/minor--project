@@ -115,6 +115,7 @@ export function solveCircuit(
         const key = makeKey(node.id, 'negative');
         if ((terminalConnections[key] || 0) > 0) {
           groundNodeId = electricalNodeMap[key] || null;
+          errors.push('Notice: Using Voltage Source (-) as reference ground (0V).');
           break;
         }
       }

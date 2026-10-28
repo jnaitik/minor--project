@@ -24,9 +24,11 @@ import PropertiesPanel from './components/circuit/PropertiesPanel';
 import SimulationResults from './components/circuit/SimulationResults';
 import Toolbar from './components/ui/Toolbar';
 import StatusBar from './components/ui/StatusBar';
-import HandTracker from './components/gesture/HandTracker';
-import GestureOverlay from './components/gesture/GestureOverlay';
-import GestureInstructions from './components/gesture/GestureInstructions';
+// Lazy-load gesture tracking components so MediaPipe and vision models are only
+// downloaded and executed if the user explicitly enables gesture control
+const HandTracker = React.lazy(() => import('./components/gesture/HandTracker'));
+const GestureOverlay = React.lazy(() => import('./components/gesture/GestureOverlay'));
+const GestureInstructions = React.lazy(() => import('./components/gesture/GestureInstructions'));
 
 import { useSocket } from './hooks/useSocket';
 import { useGestureStore } from './store/gestureStore';
@@ -125,7 +127,11 @@ const CircuitEditor: React.FC = () => {
               }`}
             >
               <PropertiesPanel collapsed={propertiesCollapsed} onToggleCollapse={togglePropertiesCollapsed} />
-              {gestureEnabled && !propertiesCollapsed && <GestureInstructions />}
+              {gestureEnabled && !propertiesCollapsed && (
+                <React.Suspense fallback={null}>
+                  <GestureInstructions />
+                </React.Suspense>
+              )}
             </div>
           )}
         </div>
@@ -183,15 +189,23 @@ const CircuitEditor: React.FC = () => {
               <div className="bottom-sheet-handle" />
               <div className="max-h-[70vh] overflow-y-auto">
                 <PropertiesPanel collapsed={false} onToggleCollapse={() => {}} />
-                {gestureEnabled && <GestureInstructions />}
+                {gestureEnabled && (
+                  <React.Suspense fallback={null}>
+                    <GestureInstructions />
+                  </React.Suspense>
+                )}
               </div>
             </div>
           </>
         )}
 
-        {/* Gesture layer (non-blocking, overlays everything) */}
-        <HandTracker />
-        <GestureOverlay />
+        {/* Gesture layer (non-blocking, only mounted if gesture tracking is active) */}
+        {gestureEnabled && (
+          <React.Suspense fallback={null}>
+            <HandTracker />
+            <GestureOverlay />
+          </React.Suspense>
+        )}
       </div>
     </ReactFlowProvider>
   );

@@ -21,7 +21,6 @@ interface UIState {
   showPalette: boolean;
   showProperties: boolean;
   showSimResults: boolean;
-  showChat: boolean;
 
   // Collapse states (sidebar compact mode)
   paletteCollapsed: boolean;
@@ -32,9 +31,7 @@ interface UIState {
   mobilePaletteOpen: boolean;
   mobilePropertiesOpen: boolean;
 
-  // Modal
-  modalOpen: boolean;
-  modalContent: 'save' | 'load' | 'settings' | 'help' | null;
+
 
   // Notifications
   notifications: Array<{
@@ -49,14 +46,12 @@ interface UIState {
   togglePalette: () => void;
   toggleProperties: () => void;
   toggleSimResults: () => void;
-  toggleChat: () => void;
   togglePaletteCollapsed: () => void;
   togglePropertiesCollapsed: () => void;
   setMobileMenuOpen: (open: boolean) => void;
   setMobilePaletteOpen: (open: boolean) => void;
   setMobilePropertiesOpen: (open: boolean) => void;
-  openModal: (content: 'save' | 'load' | 'settings' | 'help') => void;
-  closeModal: () => void;
+
   addNotification: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
   removeNotification: (id: string) => void;
 }
@@ -77,7 +72,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   showPalette: true,
   showProperties: true,
   showSimResults: false,
-  showChat: false,
 
   paletteCollapsed: typeof window !== 'undefined' ? window.innerWidth < 1024 : false,
   propertiesCollapsed: typeof window !== 'undefined' ? window.innerWidth < 1024 : false,
@@ -86,8 +80,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   mobilePaletteOpen: false,
   mobilePropertiesOpen: false,
 
-  modalOpen: false,
-  modalContent: null,
+
   notifications: [],
 
   setWindowWidth: (width: number) => {
@@ -113,7 +106,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   togglePalette: () => set({ showPalette: !get().showPalette }),
   toggleProperties: () => set({ showProperties: !get().showProperties }),
   toggleSimResults: () => set({ showSimResults: !get().showSimResults }),
-  toggleChat: () => set({ showChat: !get().showChat }),
 
   togglePaletteCollapsed: () => set({ paletteCollapsed: !get().paletteCollapsed }),
   togglePropertiesCollapsed: () => set({ propertiesCollapsed: !get().propertiesCollapsed }),
@@ -122,8 +114,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   setMobilePaletteOpen: (open) => set({ mobilePaletteOpen: open }),
   setMobilePropertiesOpen: (open) => set({ mobilePropertiesOpen: open }),
 
-  openModal: (content) => set({ modalOpen: true, modalContent: content }),
-  closeModal: () => set({ modalOpen: false, modalContent: null }),
+
 
   addNotification: (message, type) => {
     const existing = get().notifications;

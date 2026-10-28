@@ -32,6 +32,8 @@ export function useSocket(roomId: string | undefined) {
   const addNotification = useUIStore(s => s.addNotification);
 
   const hasJoined = useRef(false);
+  const lastRemoteSync = useRef<string>('');
+  const lastEmittedSync = useRef<string>('');
 
   // Join the room on mount
   useEffect(() => {
@@ -62,6 +64,7 @@ export function useSocket(roomId: string | undefined) {
 
       // Load existing circuit state from the room
       if (room.nodes.length > 0 || room.edges.length > 0) {
+        lastRemoteSync.current = JSON.stringify({ nodes: room.nodes, edges: room.edges });
         // Convert server CircuitNode/CircuitEdge to React Flow format
         const flowNodes = room.nodes.map((n: any) => ({
           id: n.id,
@@ -109,6 +112,9 @@ export function useSocket(roomId: string | undefined) {
 
     // Circuit sync from other users
     socket.on('circuit-updated', ({ nodes, edges, userId }) => {
+      // Record this remote state to avoid bouncing it back
+      lastRemoteSync.current = JSON.stringify({ nodes, edges });
+
       const flowNodes = nodes.map((n: any) => ({
         id: n.id,
         type: n.type,
@@ -171,6 +177,14 @@ export function useSocket(roomId: string | undefined) {
         targetHandle: e.targetHandle || '',
       }));
 
+      const currentSerialized = JSON.stringify({ nodes: serverNodes, edges: serverEdges });
+
+      // Prevent echoing remote updates back to server, or repeating identical broadcasts
+      if (currentSerialized === lastRemoteSync.current || currentSerialized === lastEmittedSync.current) {
+        return;
+      }
+
+      lastEmittedSync.current = currentSerialized;
       socket.emit('circuit-update', { roomId, nodes: serverNodes, edges: serverEdges });
     }, 100),
     [roomId]
