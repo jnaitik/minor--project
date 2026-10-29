@@ -155,8 +155,14 @@ const HandTracker: React.FC = () => {
           setPalmCenter(gestureResult.palmCenter);
           setGesture(stabilizedGesture as any, gestureResult.confidence);
 
-          // Real-time canvas interaction
-          processGestureInteraction(stabilizedGesture as any, smoothed, gestureResult.palmCenter);
+          // Real-time canvas interaction with full telemetry payload
+          processGestureInteraction(
+            stabilizedGesture as any,
+            smoothed,
+            gestureResult.palmCenter,
+            gestureResult,
+            video ? { videoWidth: video.videoWidth, videoHeight: video.videoHeight } : undefined
+          );
         } else {
           gestureHistoryRef.current = [];
           setStatus('No hand detected');

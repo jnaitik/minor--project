@@ -35,6 +35,10 @@ export interface GestureResult {
   confidence: number;        // 0-1 classification confidence
   cursorPosition: Position;  // index finger tip mapped to canvas coordinates
   palmCenter: Position;      // center of palm for pan gesture
+  rawThumbTip: Landmark;     // MediaPipe landmark 4
+  rawIndexTip: Landmark;     // MediaPipe landmark 8
+  pinchDistance: number;     // Euclidean distance between thumb and index tips
+  pinchPointNorm: { x: number; y: number }; // Normalized pinch midpoint
 }
 
 /** Layer definition within the exported MLP model */
@@ -232,11 +236,16 @@ export function classifyGesture(
   isCurrentlyPinching: boolean = false
 ): GestureResult {
   if (!landmarks || landmarks.length < 21) {
+    const dummy: Landmark = { x: 0, y: 0, z: 0 };
     return {
       gesture: 'none',
       confidence: 0,
       cursorPosition: { x: 0, y: 0 },
       palmCenter: { x: 0, y: 0 },
+      rawThumbTip: dummy,
+      rawIndexTip: dummy,
+      pinchDistance: 0,
+      pinchPointNorm: { x: 0, y: 0 },
     };
   }
 
@@ -260,13 +269,20 @@ export function classifyGesture(
     (prediction.gesture === 'pinch' && (isCurrentlyPinching ? prediction.confidence >= 0.35 : prediction.confidence >= 0.55)) ||
     (pinchDistance < pinchThreshold && prediction.gesture !== 'fist');
 
-  // Compute active cursor contact point:
-  // When pinching: contact point is the midpoint between thumb tip and index tip
-  // When pointing/pan/fist: index finger tip
-  const activeX = isPinchDetected ? (thumbTip.x + indexTip.x) / 2 : indexTip.x;
-  const activeY = isPinchDetected ? (thumbTip.y + indexTip.y) / 2 : indexTip.y;
+  // CRITICAL FIX FOR DOWNWARD DRIFT:
+  // The user aims and points at circuit components with their index fingertip.
+  // Using indexTip consistently as the interaction anchor guarantees that transitioning
+  // from pointing/hovering to pinching produces ZERO artificial vertical jumps or downward drift.
+  // We compute the true pinch midpoint separately for diagnostic telemetry.
+  const activeX = indexTip.x;
+  const activeY = indexTip.y;
 
-  // Map to canvas coordinates (mirror horizontally for natural webcam feel)
+  const pinchPointNorm = {
+    x: (thumbTip.x + indexTip.x) / 2,
+    y: (thumbTip.y + indexTip.y) / 2,
+  };
+
+  // Map to screen/canvas coordinates (mirror horizontally for natural webcam feel)
   const cursorPosition: Position = {
     x: (1 - activeX) * canvasWidth,
     y: activeY * canvasHeight,
@@ -278,6 +294,13 @@ export function classifyGesture(
     y: ((wrist.y + indexMcp.y + landmarks[9].y + landmarks[13].y + landmarks[17].y) / 5) * canvasHeight,
   };
 
+  const sharedDiagnostics = {
+    rawThumbTip: thumbTip,
+    rawIndexTip: indexTip,
+    pinchDistance,
+    pinchPointNorm,
+  };
+
   if (isPinchDetected) {
     const pinchConf = Math.max(prediction.confidence, 1 - pinchDistance / (palmSize * 0.40));
     return {
@@ -285,6 +308,7 @@ export function classifyGesture(
       confidence: Math.min(1, Math.max(0.7, pinchConf)),
       cursorPosition,
       palmCenter,
+      ...sharedDiagnostics,
     };
   }
 
@@ -296,6 +320,7 @@ export function classifyGesture(
       confidence: prediction.confidence,
       cursorPosition,
       palmCenter,
+      ...sharedDiagnostics,
     };
   }
 
@@ -314,6 +339,7 @@ export function classifyGesture(
         confidence: 0.85,
         cursorPosition,
         palmCenter,
+        ...sharedDiagnostics,
       };
     }
   }
@@ -325,6 +351,7 @@ export function classifyGesture(
       confidence: 0.85,
       cursorPosition,
       palmCenter,
+      ...sharedDiagnostics,
     };
   }
 
@@ -334,6 +361,7 @@ export function classifyGesture(
     confidence: prediction.confidence,
     cursorPosition,
     palmCenter,
+    ...sharedDiagnostics,
   };
 }
 

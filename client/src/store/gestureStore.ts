@@ -11,11 +11,52 @@ import type { GestureType, Position } from '../types';
 export type GestureSensitivity = 'low' | 'medium' | 'high';
 export type WebcamSize = 'compact' | 'medium' | 'large';
 
+export type GestureStateMachineState =
+  | 'IDLE'
+  | 'PINCH_DETECTED'
+  | 'COMPONENT_GRABBED'
+  | 'DRAGGING'
+  | 'RELEASED';
+
+export interface GestureDiagnosticData {
+  rawThumbTip: { x: number; y: number; z?: number };
+  rawIndexTip: { x: number; y: number; z?: number };
+  calculatedPinchPoint: { x: number; y: number }; // normalized 0-1
+  webcamPixels: { x: number; y: number; videoWidth: number; videoHeight: number };
+  screenCoordinates: { x: number; y: number; innerWidth: number; innerHeight: number };
+  canvasCoordinates: { x: number; y: number };
+  gestureState: GestureStateMachineState;
+  selectedComponentId: string | null;
+  selectedComponentType: string | null;
+  distanceToHitRegion: number | null;
+  grabOffset: { x: number; y: number } | null;
+  currentDragTargetPos: { x: number; y: number } | null;
+  nearbyComponents: Array<{
+    id: string;
+    type: string;
+    label: string;
+    bounds: { x: number; y: number; width: number; height: number };
+    distToCenter: number;
+    isInsideHitRegion: boolean;
+  }>;
+  logMessage?: string;
+}
+
 interface GestureState {
   // Gesture mode
   gestureEnabled: boolean;
   isInitialized: boolean;
   isDetecting: boolean;
+
+  // State machine state
+  stateMachineState: GestureStateMachineState;
+  setStateMachineState: (state: GestureStateMachineState) => void;
+
+  // Diagnostics
+  showDiagnostics: boolean;
+  toggleDiagnostics: () => void;
+  diagnostics: GestureDiagnosticData | null;
+  setDiagnostics: (d: GestureDiagnosticData) => void;
 
   // Sensitivity configuration
   sensitivity: GestureSensitivity;
@@ -62,6 +103,12 @@ export const useGestureStore = create<GestureState>((set, get) => ({
   gestureEnabled: false,
   isInitialized: false,
   isDetecting: false,
+  stateMachineState: 'IDLE',
+  setStateMachineState: (stateMachineState) => set({ stateMachineState }),
+  showDiagnostics: true, // Show diagnostics overlay for verification
+  toggleDiagnostics: () => set({ showDiagnostics: !get().showDiagnostics }),
+  diagnostics: null,
+  setDiagnostics: (diagnostics) => set({ diagnostics }),
   sensitivity: 'medium',
   currentGesture: 'none',
   confidence: 0,

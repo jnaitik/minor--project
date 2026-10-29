@@ -1,39 +1,51 @@
 // ============================================================================
 // hooks/useGesture.ts — High-performance decoupled gesture interaction engine
 //
-// Translates hand tracking frames directly into smooth circuit simulator actions:
-//   - Pinch / Pick on Palette: Spawns any component and drags it smoothly
-//   - Pinch / Pick on Canvas: Grabs & moves existing components with collision safety
-//   - Open Palm: Smooth canvas panning
-//   - Point (sustained): Position cursor & place component
-//   - Fist (sustained): Delete selected component
-//   - Thumbs Up (sustained): Run circuit simulation
-//   - Victory (sustained): Cycle component palette
+// Implements an explicit, rock-solid gesture state machine:
+//   IDLE → PINCH_DETECTED → COMPONENT_GRABBED → DRAGGING → RELEASED
+//
+// Features:
+//   - Precise hit-testing: Selects components genuinely under the pinch point
+//   - Zero downward drift: Index-anchored contact point + locked grab offset
+//   - Hysteresis & grace periods: Eliminates drops from 1-frame landmark flicker
+//   - Full diagnostic telemetry: Records coordinates at every pipeline stage
 // ============================================================================
 
 import type { GestureType, Position, ComponentType } from '../types';
 import { useCircuitStore } from '../store/circuitStore';
-import { useGestureStore } from '../store/gestureStore';
-import { useRoomStore } from '../store/roomStore';
+import {
+  useGestureStore,
+  type GestureStateMachineState,
+  type GestureDiagnosticData,
+} from '../store/gestureStore';
 import { useUIStore } from '../store/uiStore';
-import { COMPONENTS } from '../types';
+import { useRoomStore } from '../store/roomStore';
 import { solveCircuitLocal } from '../lib/circuitSolver';
 import socket from '../lib/socket';
+import { findComponentUnderCursor, getComponentBounds } from '../lib/collision';
+import type { GestureResult } from '../lib/gestureRecognizer';
 
-// Internal tracking state (persists across animation frames without re-rendering React)
+// Authoritative State Machine State (persists across animation frames)
+let stateMachineState: GestureStateMachineState = 'IDLE';
 let grabbedNodeId: string | null = null;
 let grabOffset = { x: 0, y: 0 };
+let grabInitialPos = { x: 0, y: 0 };
 let prevPalm: Position | null = null;
-let componentCycleIndex = 0;
 const lastActionTimes: Record<string, number> = {};
 
-// Sustained gesture confirmation
+// Sustained discrete gesture confirmation (Point, Fist, Thumbs Up, Victory)
 let activeCandidateGesture: GestureType = 'none';
 let gestureFrameCount = 0;
 const REQUIRED_CONFIRM_FRAMES = 4; // ~130ms confirmation window to prevent accidental triggers
 
-// Hand loss grace period (prevents dropping components during 1-frame camera flickers)
+// Hand loss grace period (prevents dropping components during camera flickers)
 let handLostTimeout: any = null;
+
+// Release cooldown (prevents accidental immediate re-grab while opening fingers)
+let releaseCooldownUntil = 0;
+
+// Consecutive release frames required before confirming drop
+let consecutiveReleaseFrames = 0;
 
 function canAct(action: string, cooldownMs: number = 600): boolean {
   const now = Date.now();
@@ -44,58 +56,20 @@ function canAct(action: string, cooldownMs: number = 600): boolean {
 }
 
 /**
- * Finds the nearest node to the cursor in canvas coordinates.
- */
-function findNearestFlowComponent(
-  nodes: any[],
-  flowCursor: { x: number; y: number },
-  maxDistance: number = 110
-) {
-  let nearest: any = null;
-  let minDist = maxDistance;
-
-  for (const node of nodes) {
-    const left = node.position.x;
-    const top = node.position.y;
-    const width = 110;
-    const height = 60;
-    const centerX = left + width / 2;
-    const centerY = top + height / 2;
-
-    // 1. Direct hit on component with comfortable padding
-    const isDirectHit =
-      flowCursor.x >= left - 15 &&
-      flowCursor.x <= left + width + 15 &&
-      flowCursor.y >= top - 15 &&
-      flowCursor.y <= top + height + 15;
-
-    if (isDirectHit) {
-      return node;
-    }
-
-    // 2. Proximity test to component center
-    const dist = Math.hypot(centerX - flowCursor.x, centerY - flowCursor.y);
-    if (dist < minDist) {
-      minDist = dist;
-      nearest = node;
-    }
-  }
-
-  return nearest;
-}
-
-/**
  * High-speed frame processor called on every MediaPipe detection frame.
  * Directly updates canvas components and viewport with zero React re-render overhead.
  */
 export function processGestureInteraction(
   gesture: GestureType,
   cursorPosition: Position,
-  palmCenter: Position
+  palmCenter: Position,
+  gestureResult?: GestureResult,
+  videoDimensions?: { videoWidth: number; videoHeight: number }
 ) {
   const circuitStore = useCircuitStore.getState();
   const gestureStore = useGestureStore.getState();
   const reactFlow = circuitStore.reactFlowInstance;
+  const now = Date.now();
 
   // React Flow instance must be mounted
   if (!reactFlow) return;
@@ -115,8 +89,11 @@ export function processGestureInteraction(
           if (node) {
             circuitStore.repositionNodeSafely(grabbedNodeId, node.position);
           }
+          console.log(`[GESTURE DIAGNOSTIC] Hand lost grace expired -> Released ${grabbedNodeId}`);
           grabbedNodeId = null;
+          stateMachineState = 'IDLE';
           gestureStore.setGrabbedNodeId(null);
+          gestureStore.setStateMachineState('IDLE');
         }
         handLostTimeout = null;
       }, 350);
@@ -141,67 +118,170 @@ export function processGestureInteraction(
 
   const isPinching = gesture === 'pinch' || gesture === 'drag';
 
-  // ── 1. PINCH / PICK: Grab & Drag Any Component ──
-  if (isPinching) {
-    if (!grabbedNodeId) {
-      // Check if pinching over the component palette on the sidebar (x < 240)
-      let paletteComponentType: ComponentType | null = null;
-      if (typeof document !== 'undefined' && cursorPosition.x < 240) {
-        const el = document.elementFromPoint(cursorPosition.x, cursorPosition.y);
-        const card = el?.closest('[data-component-type]');
-        if (card) {
-          paletteComponentType = card.getAttribute('data-component-type') as ComponentType;
-        }
-      }
+  // Perform hit testing against canvas components with a precise, tight touch buffer
+  const hitTestResult = findComponentUnderCursor(circuitStore.nodes, flowCursor, 10);
+  const targetUnderCursor = hitTestResult.targetNode;
 
-      if (paletteComponentType) {
-        // Spawn component directly from the palette and immediately grab it
-        const newNode = circuitStore.addNode(paletteComponentType, flowCursor, false, true);
-        if (newNode) {
-          grabbedNodeId = newNode.id;
-          grabOffset = { x: 0, y: 0 };
-          gestureStore.setGrabbedNodeId(newNode.id);
-          circuitStore.setSelectedNode(newNode.id);
-          useUIStore.getState().addNotification(`🤏 Grabbed ${newNode.data?.label || paletteComponentType}`, 'info');
+  let currentDragTargetPos: { x: number; y: number } | null = null;
+  let logMessage: string | undefined;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // EXPLICIT GESTURE STATE MACHINE:
+  // IDLE → PINCH_DETECTED → COMPONENT_GRABBED → DRAGGING → RELEASED
+  // ══════════════════════════════════════════════════════════════════════════
+
+  if (isPinching) {
+    consecutiveReleaseFrames = 0;
+
+    // ── STATE 1: IDLE / PINCH_DETECTED -> Try Grab ──
+    if (!grabbedNodeId) {
+      if (now > releaseCooldownUntil) {
+        stateMachineState = 'PINCH_DETECTED';
+
+        // Check if pinching over the component palette on the sidebar (x < 240)
+        let paletteComponentType: ComponentType | null = null;
+        if (typeof document !== 'undefined' && cursorPosition.x < 240) {
+          const el = document.elementFromPoint(cursorPosition.x, cursorPosition.y);
+          const card = el?.closest('[data-component-type]');
+          if (card) {
+            paletteComponentType = card.getAttribute('data-component-type') as ComponentType;
+          }
         }
-      } else {
-        // Otherwise, grab existing canvas component
-        const target = findNearestFlowComponent(circuitStore.nodes, flowCursor);
-        if (target) {
-          grabbedNodeId = target.id;
+
+        if (paletteComponentType) {
+          // Spawn component directly from the palette and immediately lock grab
+          const newNode = circuitStore.addNode(paletteComponentType, flowCursor, false, true);
+          if (newNode) {
+            grabbedNodeId = newNode.id;
+            grabOffset = { x: 0, y: 0 };
+            grabInitialPos = { ...newNode.position };
+            stateMachineState = 'COMPONENT_GRABBED';
+
+            gestureStore.setGrabbedNodeId(newNode.id);
+            circuitStore.setSelectedNode(newNode.id);
+            useUIStore.getState().addNotification(`🤏 Grabbed ${newNode.data?.label || paletteComponentType}`, 'info');
+
+            logMessage = `SPAWNED & GRABBED ${paletteComponentType} (${newNode.id})`;
+            console.log(`[GESTURE DIAGNOSTIC] ${logMessage}`);
+          }
+        } else if (targetUnderCursor) {
+          // Genuinely under a canvas component -> GRAB & LOCK IT
+          grabbedNodeId = targetUnderCursor.id;
           grabOffset = {
-            x: target.position.x - flowCursor.x,
-            y: target.position.y - flowCursor.y,
+            x: targetUnderCursor.position.x - flowCursor.x,
+            y: targetUnderCursor.position.y - flowCursor.y,
           };
-          gestureStore.setGrabbedNodeId(target.id);
-          circuitStore.setSelectedNode(target.id);
+          grabInitialPos = { ...targetUnderCursor.position };
+          stateMachineState = 'COMPONENT_GRABBED';
+
+          gestureStore.setGrabbedNodeId(targetUnderCursor.id);
+          circuitStore.setSelectedNode(targetUnderCursor.id);
+
+          logMessage = `GRABBED ${targetUnderCursor.data?.label || targetUnderCursor.type} (${targetUnderCursor.id}) | dist: ${hitTestResult.minDistance?.toFixed(1)}px | offset: (${Math.round(grabOffset.x)}, ${Math.round(grabOffset.y)})`;
+          console.log(`[GESTURE DIAGNOSTIC] ${logMessage}`);
+        } else {
+          // Pinch occurred in empty canvas space -> Do NOT grab random or distant components!
+          stateMachineState = 'PINCH_DETECTED';
         }
       }
     } else {
+      // ── STATE 2: DRAGGING ──
+      stateMachineState = 'DRAGGING';
+
+      // Use LOCKED grabOffset established at pinch start.
+      // NEVER recalculate grabOffset mid-drag to prevent artificial downward drift!
       const targetX = flowCursor.x + grabOffset.x;
       const targetY = flowCursor.y + grabOffset.y;
 
-      // Snap smoothly to grid increment during drag
+      // Snap smoothly to grid
       const gridSize = circuitStore.gridSnap ? circuitStore.gridSize : 4;
       const snappedX = Math.round(targetX / gridSize) * gridSize;
       const snappedY = Math.round(targetY / gridSize) * gridSize;
 
+      currentDragTargetPos = { x: snappedX, y: snappedY };
       circuitStore.updateNodePosition(grabbedNodeId, { x: snappedX, y: snappedY });
     }
   } else {
-    // Released pinch: safely place and check collisions
+    // ── STATE 3: RELEASE DETECTION & HYSTERESIS ──
     if (grabbedNodeId) {
-      const node = circuitStore.nodes.find(n => n.id === grabbedNodeId);
-      if (node) {
-        circuitStore.repositionNodeSafely(grabbedNodeId, node.position);
+      consecutiveReleaseFrames++;
+
+      // Require 2 consecutive frames of release to drop, preventing accidental release on 1-frame glitches
+      if (consecutiveReleaseFrames >= 2) {
+        stateMachineState = 'RELEASED';
+        const node = circuitStore.nodes.find(n => n.id === grabbedNodeId);
+        if (node) {
+          circuitStore.repositionNodeSafely(grabbedNodeId, node.position);
+        }
+
+        logMessage = `RELEASED ${grabbedNodeId} at (${Math.round(node?.position.x || 0)}, ${Math.round(node?.position.y || 0)})`;
+        console.log(`[GESTURE DIAGNOSTIC] ${logMessage}`);
+
+        grabbedNodeId = null;
+        gestureStore.setGrabbedNodeId(null);
+        releaseCooldownUntil = now + 180; // 180ms cooldown to avoid re-grabbing while fingers open
+        stateMachineState = 'IDLE';
       }
-      grabbedNodeId = null;
-      gestureStore.setGrabbedNodeId(null);
+    } else {
+      stateMachineState = 'IDLE';
     }
   }
 
+  gestureStore.setStateMachineState(stateMachineState);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TELEMETRY HUD & DIAGNOSTIC RECORDING
+  // ══════════════════════════════════════════════════════════════════════════
+  if (gestureResult) {
+    const videoW = videoDimensions?.videoWidth || 640;
+    const videoH = videoDimensions?.videoHeight || 480;
+
+    const nearbyComponents = hitTestResult.candidates.map(c => ({
+      id: c.node.id,
+      type: c.node.type || 'resistor',
+      label: (c.node.data?.label as string) || c.node.id,
+      bounds: {
+        x: c.bounds.left,
+        y: c.bounds.top,
+        width: c.bounds.width,
+        height: c.bounds.height,
+      },
+      distToCenter: c.distanceToCenter,
+      isInsideHitRegion: c.isInside,
+    }));
+
+    const diagnosticData: GestureDiagnosticData = {
+      rawThumbTip: gestureResult.rawThumbTip,
+      rawIndexTip: gestureResult.rawIndexTip,
+      calculatedPinchPoint: gestureResult.pinchPointNorm,
+      webcamPixels: {
+        x: gestureResult.pinchPointNorm.x * videoW,
+        y: gestureResult.pinchPointNorm.y * videoH,
+        videoWidth: videoW,
+        videoHeight: videoH,
+      },
+      screenCoordinates: {
+        x: cursorPosition.x,
+        y: cursorPosition.y,
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+      },
+      canvasCoordinates: flowCursor,
+      gestureState: stateMachineState,
+      selectedComponentId: grabbedNodeId,
+      selectedComponentType: (circuitStore.nodes.find(n => n.id === grabbedNodeId)?.type as string) || null,
+      distanceToHitRegion: hitTestResult.minDistance,
+      grabOffset: grabbedNodeId ? grabOffset : null,
+      currentDragTargetPos,
+      nearbyComponents,
+      logMessage,
+    };
+
+    gestureStore.setDiagnostics(diagnosticData);
+  }
+
   // ── 2. OPEN PALM: Smooth Canvas Pan ──
-  if (gesture === 'pan' && palmCenter.x !== 0 && palmCenter.y !== 0) {
+  if (gesture === 'pan' && palmCenter.x !== 0 && palmCenter.y !== 0 && !grabbedNodeId) {
     if (prevPalm) {
       const dx = palmCenter.x - prevPalm.x;
       const dy = palmCenter.y - prevPalm.y;
@@ -239,73 +319,44 @@ export function processGestureInteraction(
       gestureFrameCount = 0;
       gestureStore.setGestureProgress(0);
 
-      switch (gesture) {
-        case 'point':
-          if (canAct('place', 500)) {
-            let hoveredPaletteType: ComponentType | null = null;
-            if (typeof document !== 'undefined' && cursorPosition.x < 240) {
-              const el = document.elementFromPoint(cursorPosition.x, cursorPosition.y);
-              const card = el?.closest('[data-component-type]');
-              if (card) {
-                hoveredPaletteType = card.getAttribute('data-component-type') as ComponentType;
-              }
-            }
-
-            if (hoveredPaletteType) {
-              circuitStore.setPlacingComponent(hoveredPaletteType);
-              const comp = COMPONENTS.find(c => c.type === hoveredPaletteType);
-              useUIStore.getState().addNotification(`Selected ${comp?.label || hoveredPaletteType}`, 'info');
-            } else {
-              const activeType = circuitStore.placingComponentType || COMPONENTS[componentCycleIndex].type;
-              const comp = COMPONENTS.find(c => c.type === activeType) || COMPONENTS[0];
-              circuitStore.addNode(comp.type, flowCursor, false, true);
-              useUIStore.getState().addNotification(`👆 Placed ${comp.label}`, 'success');
-            }
+      if (gesture === 'point' && canAct('point', 500)) {
+        if (circuitStore.toolMode === 'place' && circuitStore.placingComponentType) {
+          circuitStore.addNode(circuitStore.placingComponentType, flowCursor, false, true);
+          useUIStore.getState().addNotification(`👆 Placed ${circuitStore.placingComponentType}`, 'success');
+        }
+      } else if (gesture === 'fist' && canAct('fist', 800)) {
+        const selectedId = circuitStore.selectedNodeId;
+        if (selectedId) {
+          circuitStore.removeNode(selectedId);
+          useUIStore.getState().addNotification('✊ Deleted selected component', 'info');
+        }
+      } else if (gesture === 'thumbs_up' && canAct('thumbs_up', 1200)) {
+        circuitStore.setIsSimulating(true);
+        const roomId = useRoomStore.getState().roomId;
+        if (roomId) {
+          socket.emit('run-simulation', { roomId });
+        } else {
+          const results = solveCircuitLocal(circuitStore.nodes, circuitStore.edges);
+          circuitStore.setSimulationResults(results);
+          if (results.isValid) {
+            useUIStore.getState().addNotification('👍 Simulation complete', 'success');
+          } else {
+            useUIStore.getState().addNotification(`Simulation error: ${results.errors[0] || 'Invalid'}`, 'error');
           }
-          break;
-
-        case 'fist':
-          if (canAct('delete', 800) && circuitStore.selectedNodeId) {
-            circuitStore.removeNode(circuitStore.selectedNodeId);
-          }
-          break;
-
-        case 'thumbs_up':
-          if (canAct('simulate', 1500)) {
-            const roomId = useRoomStore.getState().roomId;
-            if (roomId) {
-              socket.emit('run-simulation', { roomId });
-            } else {
-              const results = solveCircuitLocal(circuitStore.nodes, circuitStore.edges);
-              circuitStore.setSimulationResults(results);
-              if (results.isValid) {
-                useUIStore.getState().addNotification('Simulation complete: All voltages computed', 'success');
-              } else {
-                useUIStore.getState().addNotification(`Simulation error: ${results.errors[0] || 'Invalid circuit'}`, 'error');
-              }
-              if (!useUIStore.getState().showSimResults) {
-                useUIStore.getState().toggleSimResults();
-              }
-            }
-          }
-          break;
-
-        case 'victory':
-          if (canAct('cycle', 600)) {
-            componentCycleIndex = (componentCycleIndex + 1) % COMPONENTS.length;
-            const comp = COMPONENTS[componentCycleIndex];
-            circuitStore.setPlacingComponent(comp.type);
-            useUIStore.getState().addNotification(`✌️ Switched to: ${comp.label}`, 'info');
-          }
-          break;
+        }
+        circuitStore.setIsSimulating(false);
+      } else if (gesture === 'victory' && canAct('victory', 600)) {
+        const types: ComponentType[] = ['resistor', 'capacitor', 'inductor', 'voltage_source', 'ground', 'led', 'switch'];
+        const currentType = circuitStore.placingComponentType || 'resistor';
+        const nextIdx = (types.indexOf(currentType) + 1) % types.length;
+        const nextType = types[nextIdx];
+        circuitStore.setPlacingComponent(nextType);
+        useUIStore.getState().addNotification(`✌️ Selected ${nextType.replace('_', ' ')}`, 'info');
       }
     }
-  } else {
+  } else if (!isDiscreteGesture) {
     gestureFrameCount = 0;
     activeCandidateGesture = 'none';
     gestureStore.setGestureProgress(0);
   }
 }
-
-/** Legacy hook export */
-export function useGestureActions() {}

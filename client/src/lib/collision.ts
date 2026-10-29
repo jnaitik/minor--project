@@ -171,3 +171,102 @@ export function findNearestValidPosition(
     conflictingNode: initialCollision,
   };
 }
+
+/**
+ * Computes exact bounding box for a React Flow node taking type dimensions and rotation into account.
+ */
+export function getComponentBounds(node: any): {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+  centerX: number;
+  centerY: number;
+} {
+  const type = node.type || 'resistor';
+  const baseDim = COMPONENT_DIMENSIONS[type] || { width: 110, height: 60 };
+  const rotation = (((node.data?.rotation as number) || 0) % 360 + 360) % 360;
+  const isRotated = rotation === 90 || rotation === 270;
+  const width = isRotated ? baseDim.height : baseDim.width;
+  const height = isRotated ? baseDim.width : baseDim.height;
+  const left = node.position.x;
+  const top = node.position.y;
+
+  return {
+    left,
+    top,
+    right: left + width,
+    bottom: top + height,
+    width,
+    height,
+    centerX: left + width / 2,
+    centerY: top + height / 2,
+  };
+}
+
+/**
+ * Robust hit testing for gesture interaction.
+ * - Only selects a component if the cursor is genuinely inside its bounding box (+ touchPadding).
+ * - Resolves overlapping components deterministically by selecting the closest center.
+ * - Returns null if no component is underneath (never selects distant components!).
+ */
+export function findComponentUnderCursor(
+  nodes: any[],
+  flowCursor: { x: number; y: number },
+  touchPadding: number = 8
+): {
+  targetNode: any | null;
+  minDistance: number | null;
+  candidates: Array<{
+    node: any;
+    bounds: ReturnType<typeof getComponentBounds>;
+    distanceToCenter: number;
+    isInside: boolean;
+  }>;
+} {
+  const candidates: Array<{
+    node: any;
+    bounds: ReturnType<typeof getComponentBounds>;
+    distanceToCenter: number;
+    isInside: boolean;
+  }> = [];
+
+  for (const node of nodes) {
+    const bounds = getComponentBounds(node);
+    const isInside =
+      flowCursor.x >= bounds.left - touchPadding &&
+      flowCursor.x <= bounds.right + touchPadding &&
+      flowCursor.y >= bounds.top - touchPadding &&
+      flowCursor.y <= bounds.bottom + touchPadding;
+
+    const distanceToCenter = Math.hypot(
+      bounds.centerX - flowCursor.x,
+      bounds.centerY - flowCursor.y
+    );
+
+    candidates.push({
+      node,
+      bounds,
+      distanceToCenter,
+      isInside,
+    });
+  }
+
+  // Filter only candidate components whose bounding box actually contains the cursor
+  const hitCandidates = candidates.filter(c => c.isInside);
+
+  if (hitCandidates.length === 0) {
+    return { targetNode: null, minDistance: null, candidates };
+  }
+
+  // Sort deterministically: closest distance to center first
+  hitCandidates.sort((a, b) => a.distanceToCenter - b.distanceToCenter);
+
+  return {
+    targetNode: hitCandidates[0].node,
+    minDistance: hitCandidates[0].distanceToCenter,
+    candidates,
+  };
+}

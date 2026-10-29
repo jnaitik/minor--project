@@ -13,6 +13,7 @@
 
 import React from 'react';
 import { useGestureStore } from '../../store/gestureStore';
+import GestureDiagnosticsHUD from './GestureDiagnosticsHUD';
 
 const GESTURE_LABELS: Record<string, string> = {
   pinch: '🤏 Grab / Select',
@@ -137,6 +138,9 @@ const GestureOverlay: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Real-time Diagnostics Telemetry HUD */}
+      <GestureDiagnosticsHUD />
     </div>
   );
 };
