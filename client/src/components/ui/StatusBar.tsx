@@ -3,9 +3,8 @@
 // ============================================================================
 
 import React from 'react';
-import { Wifi, WifiOff, Hand, Cpu } from 'lucide-react';
+import { Wifi, WifiOff, Cpu, Layers } from 'lucide-react';
 import { useRoomStore } from '../../store/roomStore';
-import { useGestureStore } from '../../store/gestureStore';
 import { useCircuitStore } from '../../store/circuitStore';
 import { useUIStore } from '../../store/uiStore';
 
@@ -13,12 +12,12 @@ const StatusBar: React.FC = () => {
   const isConnected = useRoomStore(s => s.isConnected);
   const roomId = useRoomStore(s => s.roomId);
   const connectedUsers = useRoomStore(s => s.connectedUsers);
-  const gestureEnabled = useGestureStore(s => s.gestureEnabled);
-  const currentGesture = useGestureStore(s => s.currentGesture);
-  const isDetecting = useGestureStore(s => s.isDetecting);
   const nodes = useCircuitStore(s => s.nodes);
   const edges = useCircuitStore(s => s.edges);
+  const selectedNodeId = useCircuitStore(s => s.selectedNodeId);
   const notifications = useUIStore(s => s.notifications);
+
+  const selectedNode = selectedNodeId ? nodes.find(n => n.id === selectedNodeId) : null;
 
   return (
     <>
@@ -45,39 +44,37 @@ const StatusBar: React.FC = () => {
       </div>
 
       {/* Status bar */}
-      <div className="h-6 bg-dark-800/90 border-t border-dark-600/50 flex items-center px-3 gap-4 text-[10px] shrink-0">
+      <footer className="h-6 bg-dark-800/95 border-t border-dark-600/50 flex items-center px-3 gap-4 text-[10px] shrink-0 select-none">
         {/* Connection status */}
         <div className="flex items-center gap-1.5">
           {isConnected ? (
             <>
               <Wifi size={10} className="text-electric-green" />
-              <span className="text-dark-400">Connected</span>
+              <span className="text-dark-300 font-medium">Connected</span>
             </>
           ) : roomId ? (
             <>
               <WifiOff size={10} className="text-red-400" />
-              <span className="text-dark-500">Disconnected</span>
+              <span className="text-dark-400">Disconnected</span>
             </>
           ) : (
-            <span className="text-dark-500">Solo mode</span>
+            <span className="text-dark-400 font-medium">Solo mode</span>
           )}
         </div>
 
         {/* Room info */}
         {roomId && (
           <div className="flex items-center gap-1.5 text-dark-400">
-            Room: <span className="font-mono text-electric-cyan">{roomId}</span>
-            · {connectedUsers.length} user{connectedUsers.length !== 1 ? 's' : ''}
+            Room: <span className="font-mono text-electric-cyan font-semibold">{roomId}</span>
+            · {connectedUsers.length} collaborator{connectedUsers.length !== 1 ? 's' : ''}
           </div>
         )}
 
-        {/* Gesture status */}
-        {gestureEnabled && (
-          <div className="flex items-center gap-1.5">
-            <Hand size={10} className={isDetecting ? 'text-electric-violet' : 'text-dark-500'} />
-            <span className={isDetecting ? 'text-electric-violet' : 'text-dark-500'}>
-              {isDetecting ? `Gesture: ${currentGesture}` : 'No hand detected'}
-            </span>
+        {/* Selected Component hint */}
+        {selectedNode && (
+          <div className="hidden sm:flex items-center gap-1 text-electric-blue">
+            <Layers size={10} />
+            <span>Selected: {(selectedNode.data?.label as string) || selectedNode.id} ({selectedNode.type})</span>
           </div>
         )}
 
@@ -85,11 +82,15 @@ const StatusBar: React.FC = () => {
         <div className="flex-1" />
 
         {/* Component count */}
-        <div className="flex items-center gap-1.5 text-dark-500">
-          <Cpu size={10} />
-          {nodes.length} components · {edges.length} wires
+        <div className="flex items-center gap-2 text-dark-400">
+          <span className="flex items-center gap-1">
+            <Cpu size={10} />
+            {nodes.length} component{nodes.length !== 1 ? 's' : ''}
+          </span>
+          <span>·</span>
+          <span>{edges.length} wire{edges.length !== 1 ? 's' : ''}</span>
         </div>
-      </div>
+      </footer>
     </>
   );
 };

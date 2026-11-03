@@ -296,7 +296,10 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
   setSimulationResults: (results) => set({ simulationResults: results }),
   setIsSimulating: (simulating) => set({ isSimulating: simulating }),
   setToolMode: (mode) => set({ toolMode: mode }),
-  setPlacingComponent: (type) => set({ placingComponentType: type, toolMode: type ? 'place' : 'select' }),
+  setPlacingComponent: (type) => set(state => ({
+    placingComponentType: type,
+    toolMode: type ? 'place' : (state.toolMode === 'place' ? 'select' : state.toolMode),
+  })),
 
   clearCircuit: () => set({
     nodes: [],

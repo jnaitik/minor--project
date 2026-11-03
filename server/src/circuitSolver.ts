@@ -57,6 +57,12 @@ export function solveCircuit(
     if (ra !== rb) parent[ra] = rb;
   }
 
+  // Build node lookup map for robust handle resolution
+  const nodeMap: Record<string, CircuitNode> = {};
+  for (const n of nodes) {
+    nodeMap[n.id] = n;
+  }
+
   // Initialize all component terminals
   for (const node of nodes) {
     const handles = getHandlesForType(node.type);
@@ -69,11 +75,17 @@ export function solveCircuit(
   // Merge terminals connected by wires and track terminal connectivity
   const terminalConnections: Record<string, number> = {};
   for (const edge of edges) {
-    const sourceKey = makeKey(edge.source, edge.sourceHandle);
-    const targetKey = makeKey(edge.target, edge.targetHandle);
-    union(sourceKey, targetKey);
-    terminalConnections[sourceKey] = (terminalConnections[sourceKey] || 0) + 1;
-    terminalConnections[targetKey] = (terminalConnections[targetKey] || 0) + 1;
+    const sNode = nodeMap[edge.source];
+    const tNode = nodeMap[edge.target];
+    const sHandle = edge.sourceHandle || (sNode ? getHandlesForType(sNode.type)[0] : '');
+    const tHandle = edge.targetHandle || (tNode ? getHandlesForType(tNode.type)[0] : '');
+    if (edge.source && sHandle && edge.target && tHandle) {
+      const sourceKey = makeKey(edge.source, sHandle);
+      const targetKey = makeKey(edge.target, tHandle);
+      union(sourceKey, targetKey);
+      terminalConnections[sourceKey] = (terminalConnections[sourceKey] || 0) + 1;
+      terminalConnections[targetKey] = (terminalConnections[targetKey] || 0) + 1;
+    }
   }
 
   // Merge inductor terminals (short circuit in DC)
@@ -123,7 +135,11 @@ export function solveCircuit(
   }
 
   if (!groundNodeId) {
-    errors.push('No ground node found. Add a Ground component to establish reference voltage (0V).');
+    if (groundNodes.length === 0) {
+      errors.push('No ground node found. Add a Ground component to establish reference voltage (0V).');
+    } else {
+      errors.push('Ground component is disconnected. Connect its terminal to your circuit.');
+    }
     return {
       nodeVoltages: {},
       branchCurrents: {},
@@ -137,7 +153,7 @@ export function solveCircuit(
   // ---- Step 3: Check for Short Circuits & Source Presence ----
   const voltageSources = nodes.filter(node => node.type === 'voltage_source');
   if (voltageSources.length === 0) {
-    errors.push('Circuit has no DC voltage source. Add a Voltage Source to simulate active current.');
+    errors.push('Warning: Circuit has no DC voltage source. Add a Voltage Source to simulate active current.');
   }
 
   for (const vs of voltageSources) {
@@ -150,9 +166,9 @@ export function solveCircuit(
     }
   }
 
-  // Check for open/dangling terminals on key components and warn
+  // Check for open/dangling terminals on components and warn
   for (const node of nodes) {
-    if (['resistor', 'led', 'voltage_source'].includes(node.type || '')) {
+    if (['resistor', 'led', 'voltage_source', 'capacitor', 'inductor', 'switch'].includes(node.type || '')) {
       const handles = getHandlesForType(node.type);
       const openHandles = handles.filter(h => (terminalConnections[makeKey(node.id, h)] || 0) === 0);
       if (openHandles.length > 0) {
@@ -341,7 +357,7 @@ export function solveCircuit(
     }
   }
 
-  const hasFatalErrors = errors.some(e => !e.startsWith('Warning:'));
+  const hasFatalErrors = errors.some(e => !e.startsWith('Warning:') && !e.startsWith('Notice:'));
 
   return {
     nodeVoltages,

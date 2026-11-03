@@ -91,7 +91,11 @@ export interface ClientToServerEvents {
     roomId: string;
     cursor: Position;
   }) => void;
-  'run-simulation': (data: { roomId: string }) => void;
+  'run-simulation': (data: {
+    roomId: string;
+    nodes?: CircuitNode[];
+    edges?: CircuitEdge[];
+  }) => void;
   'chat-message': (data: {
     roomId: string;
     message: string;

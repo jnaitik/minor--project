@@ -1,6 +1,7 @@
 {
   "name": "circuit-collab-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "Backend server for Circuit Collab",
   "main": "dist/index.js",
   "scripts": {

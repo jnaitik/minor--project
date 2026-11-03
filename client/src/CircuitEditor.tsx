@@ -7,7 +7,6 @@
 //   - CircuitCanvas (center)
 //   - PropertiesPanel (right sidebar — collapsible / bottom sheet on mobile)
 //   - SimulationResults (bottom)
-//   - GestureEngine + GestureOverlay + WebcamPreview (gesture layer)
 //   - StatusBar (bottom bar)
 //   - Socket.io connection management
 //   - Mobile FABs for accessing sidebars
@@ -24,14 +23,9 @@ import PropertiesPanel from './components/circuit/PropertiesPanel';
 import SimulationResults from './components/circuit/SimulationResults';
 import Toolbar from './components/ui/Toolbar';
 import StatusBar from './components/ui/StatusBar';
-// Lazy-load gesture tracking components so MediaPipe and vision models are only
-// downloaded and executed if the user explicitly enables gesture control
-const HandTracker = React.lazy(() => import('./components/gesture/HandTracker'));
-const GestureOverlay = React.lazy(() => import('./components/gesture/GestureOverlay'));
-const GestureInstructions = React.lazy(() => import('./components/gesture/GestureInstructions'));
+import ErrorBoundary from './components/ui/ErrorBoundary';
 
 import { useSocket } from './hooks/useSocket';
-import { useGestureStore } from './store/gestureStore';
 import { useCircuitStore } from './store/circuitStore';
 import { useUIStore } from './store/uiStore';
 
@@ -53,8 +47,6 @@ const CircuitEditor: React.FC = () => {
   // Socket.io connection + real-time sync
   const { broadcastCircuit, broadcastCursor } = useSocket(roomId);
 
-  const gestureEnabled = useGestureStore(s => s.gestureEnabled);
-
   // Broadcast circuit changes when nodes/edges change
   const nodes = useCircuitStore(s => s.nodes);
   const edges = useCircuitStore(s => s.edges);
@@ -66,7 +58,7 @@ const CircuitEditor: React.FC = () => {
     }
   }, [nodes, edges, roomId, broadcastCircuit]);
 
-  // Track mouse/gesture cursor for presence broadcast
+  // Track mouse cursor for presence broadcast
   useEffect(() => {
     if (!roomId) return;
 
@@ -116,10 +108,14 @@ const CircuitEditor: React.FC = () => {
           {/* Center — Circuit canvas + simulation results */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <CircuitCanvas />
-            {showSimResults && <SimulationResults />}
+            {showSimResults && (
+              <ErrorBoundary fallbackTitle="Simulation View Error" fallbackMessage="Unable to render simulation results. Check the circuit configuration.">
+                <SimulationResults />
+              </ErrorBoundary>
+            )}
           </div>
 
-          {/* === Right sidebar — Properties + Gesture Instructions === */}
+          {/* === Right sidebar — Properties === */}
           {!isMobile && (
             <div
               className={`sidebar-transition flex flex-col h-full border-l border-dark-600/50 bg-dark-800/80 backdrop-blur-md ${
@@ -127,11 +123,6 @@ const CircuitEditor: React.FC = () => {
               }`}
             >
               <PropertiesPanel collapsed={propertiesCollapsed} onToggleCollapse={togglePropertiesCollapsed} />
-              {gestureEnabled && !propertiesCollapsed && (
-                <React.Suspense fallback={null}>
-                  <GestureInstructions />
-                </React.Suspense>
-              )}
             </div>
           )}
         </div>
@@ -189,22 +180,9 @@ const CircuitEditor: React.FC = () => {
               <div className="bottom-sheet-handle" />
               <div className="max-h-[70vh] overflow-y-auto">
                 <PropertiesPanel collapsed={false} onToggleCollapse={() => {}} />
-                {gestureEnabled && (
-                  <React.Suspense fallback={null}>
-                    <GestureInstructions />
-                  </React.Suspense>
-                )}
               </div>
             </div>
           </>
-        )}
-
-        {/* Gesture layer (non-blocking, only mounted if gesture tracking is active) */}
-        {gestureEnabled && (
-          <React.Suspense fallback={null}>
-            <HandTracker />
-            <GestureOverlay />
-          </React.Suspense>
         )}
       </div>
     </ReactFlowProvider>

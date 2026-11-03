@@ -23,7 +23,7 @@ const ResistorNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const rotation = (d.rotation as number) || 0;
   const handles = getHandlePositions(rotation);
   const simulationResults = useCircuitStore(s => s.simulationResults);
-  const current = simulationResults?.branchCurrents[id];
+  const current = simulationResults?.branchCurrents?.[id];
 
   const formattedResistance = formatResistance((d.value as number) || 1000);
   const label = (d.label as string) || 'R';
@@ -89,7 +89,7 @@ const ResistorNode: React.FC<NodeProps> = ({ id, data, selected }) => {
         </div>
 
         {/* Simulation results overlay */}
-        {current !== undefined && (
+        {typeof current === 'number' && !isNaN(current) && (
           <div className="mt-1 text-[9px] font-mono text-electric-green whitespace-nowrap bg-dark-950/95 border border-electric-green/40 px-1.5 py-0.5 rounded shadow-sm">
             {formatCurrent(current)}
           </div>
@@ -108,7 +108,9 @@ function formatResistance(value: number): string {
 
 /** Format current with SI prefix */
 function formatCurrent(value: number): string {
+  if (typeof value !== 'number' || isNaN(value)) return '—';
   const abs = Math.abs(value);
+  if (abs === 0) return '0.0mA';
   if (abs < 1e-6) return `${(value * 1e9).toFixed(1)}nA`;
   if (abs < 1e-3) return `${(value * 1e6).toFixed(1)}µA`;
   if (abs < 1) return `${(value * 1e3).toFixed(1)}mA`;

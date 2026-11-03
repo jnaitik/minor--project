@@ -22,7 +22,7 @@ const VoltageSourceNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const rotation = (d.rotation as number) || 0;
   const handles = getHandlePositions(rotation);
   const simulationResults = useCircuitStore(s => s.simulationResults);
-  const current = simulationResults?.branchCurrents[id];
+  const current = simulationResults?.branchCurrents?.[id];
 
   const label = (d.label as string) || 'V';
   const val = (d.value as number) || 5;
@@ -84,7 +84,7 @@ const VoltageSourceNode: React.FC<NodeProps> = ({ id, data, selected }) => {
           </svg>
         </div>
 
-        {current !== undefined && (
+        {typeof current === 'number' && !isNaN(current) && (
           <div className="mt-1 text-[9px] font-mono text-electric-green whitespace-nowrap bg-dark-950/95 border border-electric-green/40 px-1.5 py-0.5 rounded shadow-sm">
             {Math.abs(current * 1000).toFixed(1)}mA
           </div>

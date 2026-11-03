@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CircuitCollab Poster</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+@page {
+  size: 1123px 1587px;
+  margin: 0;
+}
+@media print {
+  html, body {
+    width: 1123px !important;
+    height: 1587px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  #dc-root, #dc-root > .sc-host {
+    width: 1123px !important;
+    height: 1587px !important;
+    overflow: hidden !important;
+  }
+}
+</style>
+</helmet>
+<div style="width: 1123px; height: 1587px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; background: #F3F5FA; font-family: 'Inter', system-ui, sans-serif; color: #0F172A">
+
+<!-- TOP BAR: college -->
+<div style="height: 80px; flex: none; box-sizing: border-box; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; background: #060B18; border-bottom: 1px solid #1E293B">
+<div style="display: flex; align-items: center; gap: 16px">
+<img src="./assets/mits_logo.png" alt="MITS Gwalior Logo" style="width: 56px; height: 56px; object-fit: contain; flex: none">
+<div>
+<div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 23px; line-height: 1.15; color: #FFFFFF">Madhav Institute of Technology &amp; Science, Gwalior</div>
+<div style="font-size: 13.5px; margin-top: 3px; color: #A9B8D6">Department of Electronics &amp; Communication Engineering</div>
+</div>
+</div>
+<div style="text-align: right">
+<div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; color: #67E8F9">CORNERSTONE PROJECT</div>
+<div style="font-size: 13.5px; margin-top: 3px; color: #A9B8D6">B.Tech · 2026</div>
+</div>
+</div>
+
+<!-- HERO -->
+<div style="height: 352px; flex: none; box-sizing: border-box; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; gap: 32px; background-color: #0A1020; background-image: linear-gradient(rgba(96,165,250,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(96,165,250,0.08) 1px, transparent 1px); background-size: 28px 28px; border-bottom: 5px solid #3B82F6">
+<div style="width: 541px; flex: none">
+<div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12.5px; letter-spacing: 0.14em; color: #67E8F9">COLLABORATIVE CIRCUIT CAD &amp; DC SIMULATION</div>
+<h1 style="margin: 8px 0 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 70px; line-height: 1; letter-spacing: -0.02em; color: #FFFFFF">Circuit<span style="color: #60A5FA">Collab</span></h1>
+<p style="margin: 12px 0 0; font-size: 18px; line-height: 1.45; color: #CBD5E8">Draft, share and simulate DC electronic circuits together — live, in any browser, with nothing to install.</p>
+<div style="display: flex; gap: 8px; margin-top: 14px">
+<span style="padding: 5px 12px; border-radius: 999px; border: 1px solid #334155; background: #0F1A33; font-size: 12.5px; font-weight: 600; color: #FCD34D">Live Simulation</span>
+<span style="padding: 5px 12px; border-radius: 999px; border: 1px solid #334155; background: #0F1A33; font-size: 12.5px; font-weight: 600; color: #93C5FD">Real-time Collab</span>
+<span style="padding: 5px 12px; border-radius: 999px; border: 1px solid #334155; background: #0F1A33; font-size: 12.5px; font-weight: 600; color: #67E8F9">MNA DC Solver</span>
+</div>
+<div style="display: flex; gap: 28px; margin-top: 18px">
+<div>
+<div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 26px; line-height: 1; color: #FFFFFF">0</div>
+<div style="font-size: 12px; margin-top: 4px; color: #A9B8D6">installs needed</div>
+</div>
+<div>
+<div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 26px; line-height: 1; color: #FFFFFF">6</div>
+<div style="font-size: 12px; margin-top: 4px; color: #A9B8D6">character room code</div>
+</div>
+<div>
+<div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 26px; line-height: 1; color: #FFFFFF">100%</div>
+<div style="font-size: 12px; margin-top: 4px; color: #A9B8D6">benchmark accuracy</div>
+</div>
+</div>
+</div>
+<div style="width: 470px; flex: none">
+<img src="./assets/530283417c759fe17602202ed687e55e.png" alt="CircuitCollab editor showing a switch, resistor, LED and voltage source solved by the DC simulator" style="display: block; width: 470px; height: 253px; object-fit: cover; border-radius: 10px; border: 1px solid #334155">
+<div style="margin-top: 8px; font-size: 12px; color: #A9B8D6">Live editor: an LED circuit solved instantly, results table below the canvas.</div>
+</div>
+</div>
+
+<!-- BODY -->
+<div style="flex: none; box-sizing: border-box; padding: 20px 40px 0; display: flex; flex-direction: column; gap: 14px">
+
+<!-- ROW 1: problem / solution -->
+<div style="height: 206px; display: flex; gap: 14px">
+<div style="flex: 1; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #B91C1C">01</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">The Problem</h2></div>
+<div style="display: flex; flex-direction: column; gap: 9px">
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 20px; height: 20px; border-radius: 50%; background: #FEE2E2; color: #B91C1C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span><div style="font-size: 13.5px; line-height: 1.4; color: #1E293B"><b>Desktop isolation.</b> Reviewing a schematic means exporting files, sending screenshots or sharing screens.</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 20px; height: 20px; border-radius: 50%; background: #FEE2E2; color: #B91C1C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span><div style="font-size: 13.5px; line-height: 1.4; color: #1E293B"><b>Installation friction.</b> Multi-gigabyte installs and licences slow down lab teaching.</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 20px; height: 20px; border-radius: 50%; background: #FEE2E2; color: #B91C1C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">3</span><div style="font-size: 13.5px; line-height: 1.4; color: #1E293B"><b>Unsynchronised simulation.</b> Remote teammates test different parameters and get different results.</div></div>
+</div>
+</div>
+<div style="flex: 1; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #047857">02</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Our Solution</h2></div>
+<div style="display: flex; flex-direction: column; gap: 9px">
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 20px; height: 20px; border-radius: 50%; background: #D1FAE5; color: #047857; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">1</span><div style="font-size: 13.5px; line-height: 1.4; color: #1E293B"><b>Zero-install web CAD.</b> The full schematic editor opens instantly in any modern browser.</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 20px; height: 20px; border-radius: 50%; background: #D1FAE5; color: #047857; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span><div style="font-size: 13.5px; line-height: 1.4; color: #1E293B"><b>Google Docs-style rooms.</b> Join with a 6-character code and see live cursors, parts, wires and edits.</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 20px; height: 20px; border-radius: 50%; background: #D1FAE5; color: #047857; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">3</span><div style="font-size: 13.5px; line-height: 1.4; color: #1E293B"><b>Deterministic MNA solver.</b> One solver on client and server gives everyone identical electrical metrics.</div></div>
+</div>
+</div>
+</div>
+
+<!-- ROW 2: architecture -->
+<div style="height: 168px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">03</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">System Architecture</h2></div>
+<div style="display: flex; align-items: center; gap: 0">
+<div style="width: 400px; flex: none; box-sizing: border-box; padding: 10px 14px; border-radius: 12px; background: #0A1020; border: 1px solid #1E3A8A">
+<div style="font-size: 15px; font-weight: 700; color: #FFFFFF">Frontend (Browser) <span style="font-weight: 500; color: #A9B8D6">· React 18 + Tailwind</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px">
+<span style="padding: 4px 8px; border-radius: 6px; background: #1E3A8A; font-size: 12px; font-weight: 600; color: #DBEAFE">React Flow canvas</span>
+<span style="padding: 4px 8px; border-radius: 6px; background: #1E3A8A; font-size: 12px; font-weight: 600; color: #DBEAFE">Zustand store</span>
+<span style="padding: 4px 8px; border-radius: 6px; background: #164E63; font-size: 12px; font-weight: 600; color: #CFFAFE">Client MNA solver</span>
+</div>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+<div style="font-size: 13px; font-weight: 700; color: #0A1020">WebSockets · JSON</div>
+<svg width="150" height="16" viewBox="0 0 150 16" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="two-way arrow"><path d="M6 8h138M14 2L6 8l8 6M136 2l8 6-8 6"></path></svg>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #334155; text-align: center; line-height: 1.35">circuit-update<br>run-simulation</div>
+</div>
+<div style="width: 400px; flex: none; box-sizing: border-box; padding: 10px 14px; border-radius: 12px; background: #0A1020; border: 1px solid #1E3A8A">
+<div style="font-size: 15px; font-weight: 700; color: #FFFFFF">Backend (Server) <span style="font-weight: 500; color: #A9B8D6">· Node.js + Express</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px">
+<span style="padding: 4px 8px; border-radius: 6px; background: #1E3A8A; font-size: 12px; font-weight: 600; color: #DBEAFE">Socket.IO engine</span>
+<span style="padding: 4px 8px; border-radius: 6px; background: #1E3A8A; font-size: 12px; font-weight: 600; color: #DBEAFE">Room manager</span>
+<span style="padding: 4px 8px; border-radius: 6px; background: #164E63; font-size: 12px; font-weight: 600; color: #CFFAFE">Server MNA solver</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ROW 3: features / MNA -->
+<div style="height: 228px; display: flex; gap: 14px">
+<div style="width: 440px; flex: none; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">04</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Key Features</h2></div>
+<div style="display: flex; flex-direction: column; gap: 9px; font-size: 13.5px; line-height: 1.4; color: #1E293B">
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: #3B82F6"></span><div><b>7 parts:</b> R, C, L, DC source, ground, LED, switch</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: #7C5CF0"></span><div><b>CAD tools:</b> rotate, wire, undo/redo, grid snap, zoom</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: #06B6D4"></span><div><b>Live cursors,</b> one colour per collaborator</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: #F59E0B"></span><div><b>Results:</b> node voltages, current, ΔV and power</div></div>
+<div style="display: flex; gap: 10px"><span style="flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: #10B981"></span><div><b>Clear errors:</b> missing ground, floating pins, shorts</div></div>
+</div>
+</div>
+<div style="flex: 1; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">05</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Modified Nodal Analysis</h2></div>
+<div style="display: flex; align-items: center; gap: 14px">
+<div style="display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-style: italic; font-weight: 700; font-size: 20px; color: #0A1020">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; padding: 4px 10px; border-left: 2px solid #0A1020; border-right: 2px solid #0A1020; border-radius: 4px"><span>G</span><span>B</span><span>C</span><span>D</span></div>
+<div style="display: grid; gap: 4px; padding: 4px 8px; border-left: 2px solid #0A1020; border-right: 2px solid #0A1020; border-radius: 4px"><span>v</span><span>j</span></div>
+<span style="font-style: normal">=</span>
+<div style="display: grid; gap: 4px; padding: 4px 8px; border-left: 2px solid #0A1020; border-right: 2px solid #0A1020; border-radius: 4px"><span>i</span><span>e</span></div>
+</div>
+<div style="font-size: 12.5px; line-height: 1.4; color: #334155"><b>G</b> conductances · <b>B, C</b> voltage-source incidence · <b>v</b> node voltages · <b>j</b> source currents · <b>e</b> source voltages</div>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; margin-top: 14px; flex-wrap: wrap">
+<span style="padding: 5px 10px; border-radius: 8px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">Gaussian elimination</span>
+<span style="color: #64748B; font-weight: 700">→</span>
+<span style="padding: 5px 10px; border-radius: 8px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">Partial pivoting</span>
+<span style="color: #64748B; font-weight: 700">→</span>
+<span style="padding: 5px 10px; border-radius: 8px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">Back-substitution</span>
+</div>
+<div style="margin-top: 10px; font-size: 12.5px; line-height: 1.4; color: #334155">Singular matrix (pivot &lt; 10<sup>−12</sup>) is caught as a short circuit. LEDs use a piecewise-linear model with a ≈2.0&nbsp;V threshold.</div>
+</div>
+</div>
+
+<!-- ROW 4: interface / results -->
+<div style="height: 218px; display: flex; gap: 14px">
+<div style="width: 530px; flex: none; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">06</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Inside the App</h2></div>
+<div style="display: flex; gap: 12px">
+<div style="width: 241px">
+<img src="./assets/7998f8a1daaed2818faa88a291ce7f3f.png" alt="CircuitCollab lobby with Create New Room and Join options" style="display: block; width: 241px; height: 130px; object-fit: cover; border-radius: 8px; border: 1px solid #1E293B">
+<div style="margin-top: 5px; font-size: 12px; color: #334155">Lobby: create or join a room</div>
+</div>
+<div style="width: 241px">
+<img src="./assets/6696845452f989dd1d9b3a030d7b8006.png" alt="CircuitCollab workspace with component palette, toolbar and property panel" style="display: block; width: 241px; height: 130px; object-fit: cover; border-radius: 8px; border: 1px solid #1E293B">
+<div style="margin-top: 5px; font-size: 12px; color: #334155">Workspace: palette, tools, properties</div>
+</div>
+</div>
+</div>
+<div style="flex: 1; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">07</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Verified Results</h2></div>
+<div style="font-size: 12.5px; line-height: 1.4; color: #334155">Benchmark: 10&nbsp;V source, 2&nbsp;kΩ resistor. Hand check: I = 10/2000 = 5&nbsp;mA, P = 50&nbsp;mW.</div>
+<table style="width: 100%; margin-top: 8px; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #0F172A">
+<thead>
+<tr style="background: #0A1020; color: #FFFFFF; text-align: right">
+<th style="padding: 6px 8px; text-align: left; font-weight: 700">Part</th>
+<th style="padding: 6px 8px; font-weight: 700">ΔV</th>
+<th style="padding: 6px 8px; font-weight: 700">I</th>
+<th style="padding: 6px 8px; font-weight: 700">P</th>
+<th style="padding: 6px 8px; font-weight: 700">Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr style="text-align: right; border-bottom: 1px solid #CBD5E1"><td style="padding: 6px 8px; text-align: left; font-weight: 700">V1 source</td><td style="padding: 6px 8px">10.00 V</td><td style="padding: 6px 8px">5.00 mA</td><td style="padding: 6px 8px">50.00 mW</td><td style="padding: 6px 8px; color: #047857; font-weight: 700">100.0%</td></tr>
+<tr style="text-align: right; border-bottom: 1px solid #CBD5E1"><td style="padding: 6px 8px; text-align: left; font-weight: 700">R1 resistor</td><td style="padding: 6px 8px">10.00 V</td><td style="padding: 6px 8px">5.00 mA</td><td style="padding: 6px 8px">50.00 mW</td><td style="padding: 6px 8px; color: #047857; font-weight: 700">100.0%</td></tr>
+<tr style="text-align: right; border-bottom: 1px solid #CBD5E1"><td style="padding: 6px 8px; text-align: left; font-weight: 700">GND</td><td style="padding: 6px 8px">0.00 V</td><td style="padding: 6px 8px">—</td><td style="padding: 6px 8px">—</td><td style="padding: 6px 8px; color: #334155">Reference</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- ROW 5: stack / future -->
+<div style="height: 120px; display: flex; gap: 14px">
+<div style="width: 560px; flex: none; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">08</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Tech Stack</h2></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="padding: 4px 10px; border-radius: 6px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">React 18</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">TypeScript</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">Vite</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">React Flow</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">Zustand</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #DBEAFE; font-size: 12.5px; font-weight: 600; color: #1E3A8A">Tailwind CSS</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #EDE9FE; font-size: 12.5px; font-weight: 600; color: #4C1D95">Node.js</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #EDE9FE; font-size: 12.5px; font-weight: 600; color: #4C1D95">Express</span>
+<span style="padding: 4px 10px; border-radius: 6px; background: #EDE9FE; font-size: 12.5px; font-weight: 600; color: #4C1D95">Socket.IO</span>
+</div>
+</div>
+<div style="flex: 1; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D8DFEC; border-radius: 14px; padding: 16px 18px">
+<div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px"><span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #1D4ED8">09</span><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #0A1020">Future Scope</h2></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; font-size: 12.5px; line-height: 1.35; color: #1E293B">
+<div>AC &amp; transient analysis</div>
+<div>BJT &amp; Op-Amp models</div>
+<div>Virtual DMM &amp; oscilloscope</div>
+<div>SPICE netlist &amp; BOM export</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- FOOTER: team -->
+<div style="flex: 1; margin-top: 16px; box-sizing: border-box; padding: 18px 40px; background: #060B18; border-top: 5px solid #3B82F6; display: flex; flex-direction: column; justify-content: center; gap: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.14em; color: #67E8F9">PROJECT TEAM</div>
+<div style="font-size: 13.5px; color: #A9B8D6">Under the guidance of <b style="color: #FFFFFF">Dr. Prateek Kumar</b></div>
+</div>
+<div style="display: flex; gap: 12px">
+<div style="flex: 1; box-sizing: border-box; padding: 10px 14px; border-radius: 10px; background: #0F1A33; border: 1px solid #334155">
+<div style="font-size: 16px; font-weight: 700; color: #FFFFFF">Naitik Jain</div>
+<div style="margin-top: 3px; font-size: 12px; color: #A9B8D6">Enrollment No. BTEL24O1075</div>
+</div>
+<div style="flex: 1; box-sizing: border-box; padding: 10px 14px; border-radius: 10px; background: #0F1A33; border: 1px solid #334155">
+<div style="font-size: 16px; font-weight: 700; color: #FFFFFF">Aadarsh Singh Tomar</div>
+<div style="margin-top: 3px; font-size: 12px; color: #A9B8D6">Enrollment No. BTEL24O1001</div>
+</div>
+<div style="flex: 1; box-sizing: border-box; padding: 10px 14px; border-radius: 10px; background: #0F1A33; border: 1px solid #334155">
+<div style="font-size: 16px; font-weight: 700; color: #FFFFFF">Vidagdh Singh Tomar</div>
+<div style="margin-top: 3px; font-size: 12px; color: #A9B8D6">Enrollment No. BTEL24O1143</div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1123,"height":1587}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

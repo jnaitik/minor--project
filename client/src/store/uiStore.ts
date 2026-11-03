@@ -46,6 +46,7 @@ interface UIState {
   togglePalette: () => void;
   toggleProperties: () => void;
   toggleSimResults: () => void;
+  setShowSimResults: (show: boolean) => void;
   togglePaletteCollapsed: () => void;
   togglePropertiesCollapsed: () => void;
   setMobileMenuOpen: (open: boolean) => void;
@@ -106,6 +107,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   togglePalette: () => set({ showPalette: !get().showPalette }),
   toggleProperties: () => set({ showProperties: !get().showProperties }),
   toggleSimResults: () => set({ showSimResults: !get().showSimResults }),
+  setShowSimResults: (show: boolean) => set({ showSimResults: show }),
 
   togglePaletteCollapsed: () => set({ paletteCollapsed: !get().paletteCollapsed }),
   togglePropertiesCollapsed: () => set({ propertiesCollapsed: !get().propertiesCollapsed }),

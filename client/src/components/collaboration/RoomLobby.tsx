@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Users, Hand, ArrowRight, Loader2, Cpu } from 'lucide-react';
+import { Zap, Users, Activity, ArrowRight, Loader2, Cpu } from 'lucide-react';
 
 const RoomLobby: React.FC = () => {
   const navigate = useNavigate();
@@ -90,7 +90,7 @@ const RoomLobby: React.FC = () => {
             Circuit<span className="text-electric-blue">Collab</span>
           </h1>
           <p className="text-dark-400 mt-2 text-sm">
-            Real-time collaborative circuit simulator with hand gesture control
+            Professional real-time collaborative electronic circuit simulator
           </p>
         </div>
 
@@ -105,8 +105,8 @@ const RoomLobby: React.FC = () => {
             Real-time Collab
           </div>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-dark-700/50 border border-dark-600/30 text-[11px] text-dark-300">
-            <Hand size={12} className="text-electric-violet" />
-            Gesture Control
+            <Activity size={12} className="text-electric-cyan" />
+            MNA DC Solver
           </div>
         </div>
 
@@ -179,8 +179,8 @@ const RoomLobby: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] text-dark-600 mt-6">
-          Built with React · Socket.io · MediaPipe · React Flow
+        <p className="text-center text-[11px] text-dark-500 mt-6">
+          Built with React · Socket.io · MNA Solver · React Flow
         </p>
       </div>
     </div>

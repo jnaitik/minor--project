@@ -23,8 +23,8 @@ const LEDNode: React.FC<NodeProps> = ({ id, data, selected }) => {
   const rotation = (d.rotation as number) || 0;
   const handles = getHandlePositions(rotation);
   const simulationResults = useCircuitStore(s => s.simulationResults);
-  const isLit = simulationResults?.ledStates[id] || false;
-  const current = simulationResults?.branchCurrents[id];
+  const isLit = Boolean(simulationResults?.ledStates?.[id]);
+  const current = simulationResults?.branchCurrents?.[id];
 
   const label = (d.label as string) || 'LED';
 

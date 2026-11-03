@@ -73,17 +73,6 @@ export interface SimulationResults {
   errors: string[];
 }
 
-/** Detected hand gesture types */
-export type GestureType =
-  | 'pinch'
-  | 'drag'
-  | 'pan'
-  | 'point'
-  | 'thumbs_up'
-  | 'fist'
-  | 'victory'
-  | 'none';
-
 /** Tool modes for the circuit editor */
 export type ToolMode = 'select' | 'wire' | 'place' | 'delete';
 

@@ -52,7 +52,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         <div className="text-dark-500 text-center">
           <div className="text-3xl mb-2">🔧</div>
           <p className="text-sm">Select a component to view properties</p>
-          <p className="text-xs text-dark-500 mt-1">Click any circuit element or grab with pinch gesture</p>
+          <p className="text-xs text-dark-500 mt-1">Click any circuit element on the canvas</p>
         </div>
       </div>
     );
@@ -67,8 +67,8 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   );
 
   // Live simulation data for this component
-  const nodeCurrent = simulationResults?.branchCurrents[selectedNode.id];
-  const nodePower = simulationResults?.componentPower[selectedNode.id];
+  const nodeCurrent = simulationResults?.branchCurrents?.[selectedNode.id];
+  const nodePower = simulationResults?.componentPower?.[selectedNode.id];
 
   const handleValueChange = (value: string) => {
     const numValue = parseFloat(value);
@@ -262,13 +262,13 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         )}
 
         {/* Live Simulation Info (if available) */}
-        {(nodeCurrent !== undefined || nodePower !== undefined) && (
+        {(typeof nodeCurrent === 'number' && !isNaN(nodeCurrent) || typeof nodePower === 'number' && !isNaN(nodePower)) && (
           <div className="p-3 bg-dark-900/60 border border-electric-green/30 rounded-lg space-y-1.5">
             <div className="text-[11px] font-semibold text-electric-green uppercase tracking-wide flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-electric-green animate-pulse" />
               Live Simulation
             </div>
-            {nodeCurrent !== undefined && (
+            {typeof nodeCurrent === 'number' && !isNaN(nodeCurrent) && (
               <div className="flex justify-between text-xs font-mono text-dark-200">
                 <span className="text-dark-400">Current:</span>
                 <span className="text-electric-cyan font-medium">
@@ -278,7 +278,7 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                 </span>
               </div>
             )}
-            {nodePower !== undefined && (
+            {typeof nodePower === 'number' && !isNaN(nodePower) && (
               <div className="flex justify-between text-xs font-mono text-dark-200">
                 <span className="text-dark-400">Power:</span>
                 <span className="text-electric-amber font-medium">

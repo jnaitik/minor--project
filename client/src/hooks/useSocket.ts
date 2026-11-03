@@ -54,6 +54,7 @@ export function useSocket(roomId: string | undefined) {
 
     socket.on('disconnect', () => {
       setConnected(false);
+      useCircuitStore.getState().setIsSimulating(false);
     });
 
     socket.on('room-joined', ({ room, userId }) => {
@@ -95,6 +96,7 @@ export function useSocket(roomId: string | undefined) {
     socket.on('room-error', ({ message }) => {
       setError(message);
       setJoining(false);
+      useCircuitStore.getState().setIsSimulating(false);
       addNotification(message, 'error');
     });
 
@@ -140,8 +142,14 @@ export function useSocket(roomId: string | undefined) {
 
     // Simulation results from server
     socket.on('simulation-results', (results) => {
+      useCircuitStore.getState().setIsSimulating(false);
       setSimulationResults(results);
-      addNotification('Simulation updated', 'success');
+      if (results?.isValid) {
+        addNotification('Simulation complete: Node voltages and currents calculated', 'success');
+      } else {
+        const firstErr = results?.errors?.[0] || 'Simulation completed with warnings';
+        addNotification(`Simulation notice: ${firstErr}`, 'warning');
+      }
     });
 
     // Cleanup on unmount

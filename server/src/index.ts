@@ -136,21 +136,43 @@ io.on('connection', (socket) => {
 
   // ---- Run Simulation ----
   // Runs the MNA circuit solver on the server and broadcasts results to ALL users.
-  socket.on('run-simulation', ({ roomId }) => {
-    const room = getRoom(roomId);
-    if (!room) {
-      socket.emit('room-error', { message: 'Room not found' });
-      return;
-    }
+  socket.on('run-simulation', ({ roomId, nodes, edges }) => {
+    try {
+      if (nodes && edges) {
+        updateCircuit(roomId, nodes, edges);
+        socket.to(roomId.toUpperCase()).emit('circuit-updated', {
+          nodes,
+          edges,
+          userId: socket.id,
+        });
+      }
 
-    console.log(`[Solver] Running simulation for room ${roomId}...`);
-    const results = solveCircuit(room.nodes, room.edges);
-    setSimulationResults(roomId, results);
-    
-    // Send results to ALL users in the room (including the requester)
-    io.to(roomId.toUpperCase()).emit('simulation-results', results);
-    
-    console.log(`[Solver] Simulation complete. Valid: ${results.isValid}, Errors: ${results.errors.length}`);
+      const room = getRoom(roomId);
+      if (!room) {
+        socket.emit('room-error', { message: 'Room not found' });
+        return;
+      }
+
+      console.log(`[Solver] Running simulation for room ${roomId}...`);
+      const results = solveCircuit(room.nodes, room.edges);
+      setSimulationResults(roomId, results);
+      
+      // Send results to ALL users in the room (including the requester)
+      io.to(roomId.toUpperCase()).emit('simulation-results', results);
+      
+      console.log(`[Solver] Simulation complete. Valid: ${results.isValid}, Errors: ${results.errors.length}`);
+    } catch (err: any) {
+      console.error(`[Solver] Simulation failed with exception:`, err);
+      const fallbackResults = {
+        nodeVoltages: {},
+        branchCurrents: {},
+        componentPower: {},
+        ledStates: {},
+        isValid: false,
+        errors: [`Server solver error: ${err?.message || 'Simulation could not be completed'}`],
+      };
+      io.to(roomId.toUpperCase()).emit('simulation-results', fallbackResults);
+    }
   });
 
   // ---- Chat Message ----

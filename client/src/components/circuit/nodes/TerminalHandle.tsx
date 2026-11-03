@@ -5,7 +5,7 @@
 //   - High-contrast visual terminal with snap highlights
 //   - Clear junction indicator dot when a wire is connected
 //   - Tooltips identifying terminal polarity / function
-//   - Generous target hit area for both mouse and hand gesture wiring
+//   - Generous target hit area for smooth mouse wiring
 // ============================================================================
 
 import React from 'react';

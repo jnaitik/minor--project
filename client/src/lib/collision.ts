@@ -207,7 +207,7 @@ export function getComponentBounds(node: any): {
 }
 
 /**
- * Robust hit testing for gesture interaction.
+ * Robust hit testing for mouse interaction.
  * - Only selects a component if the cursor is genuinely inside its bounding box (+ touchPadding).
  * - Resolves overlapping components deterministically by selecting the closest center.
  * - Returns null if no component is underneath (never selects distant components!).

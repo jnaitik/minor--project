@@ -6,7 +6,6 @@
 //   - Drag-and-drop from the component palette with cursor-centered placement
 //   - Wire connections between component terminals with junction dots
 //   - Node selection, deletion, collision-free repositioning, and movement
-//   - Gesture-driven interactions (via gesture store)
 //   - Accurate screen-to-canvas coordinate transformations invariant to zoom/pan
 //   - Remote user cursor display
 // ============================================================================
@@ -336,9 +335,9 @@ const CircuitCanvas: React.FC = () => {
         {/* Placing mode indicator banner */}
         {toolMode === 'place' && placingComponentType && (
           <Panel position="top-center">
-            <div className="bg-electric-blue/20 border border-electric-blue/40 text-electric-blue px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm animate-slide-down flex items-center gap-2 shadow-lg">
-              <span className="w-2 h-2 rounded-full bg-electric-cyan animate-ping" />
-              Click on canvas to place {placingComponentType.replace('_', ' ')} · Press ESC to cancel
+            <div className="bg-dark-900/90 border border-electric-blue/40 text-electric-blue px-3.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-md flex items-center gap-2 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-electric-cyan" />
+              <span>Click canvas to place {placingComponentType.replace('_', ' ')} · Press ESC to cancel</span>
             </div>
           </Panel>
         )}
@@ -358,13 +357,13 @@ const CircuitCanvas: React.FC = () => {
           <div
             className={`rounded-lg border-2 border-dashed px-3 py-2 flex items-center justify-center transition-all ${
               placementPreview.isValid
-                ? 'border-electric-green/90 bg-electric-green/15 text-electric-green shadow-lg shadow-electric-green/20'
-                : 'border-red-500/90 bg-red-500/15 text-red-400 shadow-lg shadow-red-500/20'
+                ? 'border-emerald-500/70 bg-emerald-500/10 text-emerald-300'
+                : 'border-rose-500/70 bg-rose-500/10 text-rose-300'
             }`}
             style={{ width: 110, height: 60 }}
           >
-            <span className="text-[10px] font-mono font-semibold">
-              {placementPreview.isValid ? `✓ Place ${placementPreview.type}` : '✗ Occupied'}
+            <span className="text-[10px] font-mono font-semibold tracking-tight">
+              {placementPreview.isValid ? `+ Place ${placementPreview.type.replace('_', ' ')}` : 'Position Occupied'}
             </span>
           </div>
         </div>
@@ -373,7 +372,7 @@ const CircuitCanvas: React.FC = () => {
       {/* Suggested available position ghost box when candidate spot is occupied */}
       {toolMode === 'place' && placementPreview && !placementPreview.isValid && suggestedScreenPos && (
         <div
-          className="pointer-events-none absolute z-30 transition-all duration-150 animate-pulse"
+          className="pointer-events-none absolute z-25 transition-all duration-100"
           style={{
             left: suggestedScreenPos.x,
             top: suggestedScreenPos.y,
@@ -382,11 +381,11 @@ const CircuitCanvas: React.FC = () => {
           }}
         >
           <div
-            className="rounded-lg border-2 border-dashed border-electric-cyan/80 bg-electric-cyan/10 text-electric-cyan shadow-lg shadow-electric-cyan/20 px-3 py-2 flex items-center justify-center"
+            className="rounded-lg border border-dashed border-cyan-500/50 bg-cyan-500/5 text-cyan-300 px-3 py-2 flex items-center justify-center"
             style={{ width: 110, height: 60 }}
           >
-            <span className="text-[10px] font-mono font-semibold">
-              💡 Suggested Slot
+            <span className="text-[9px] font-mono font-medium">
+              Suggested Spot
             </span>
           </div>
         </div>
